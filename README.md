@@ -149,23 +149,6 @@ mesh.inter_chunk_delay_sec = 1.0
 
 ---
 
-## Troubleshooting
-
-- **No responses?**  
-  - Verify TCP connectivity:
-    ```bash
-    meshtastic --info --host $MESH_HOST
-    ```
-  - Confirm `MESH_HOST` is set and reachable from where the app runs.
-  - Ensure you’re sending a **direct message** to the bot’s node ID (not broadcast/LongFast chatter).
-- **Duplicate outputs?**  
-  - This build dedupes by only dispatching DM callbacks on the `meshtastic.receive.text` path.
-- **Out-of-order or truncated messages?**  
-  - Increase `mesh.inter_chunk_delay_sec` (e.g., `1.5`–`2.0`).
-  - Extremely long pages will be split into multiple DMs—use `n`/`p`.
-
----
-
 ## Security & Etiquette
 
 - The app **never** posts to LongFast by design—it only responds to DMs.
