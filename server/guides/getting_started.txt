@@ -1,0 +1,6 @@
+Getting Started
+--------------
+
+1. Update server/gophermap with your own menu items.
+2. Run the app; the bundled Gopher server will host these files.
+3. Point MeshGopher at gopher://localhost:7070/ to explore.

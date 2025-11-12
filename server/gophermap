@@ -1,0 +1,6 @@
+iMeshGopher Local Demo (edit server/gophermap to customize)	fake	localhost	7070
+0Welcome Message	/welcome.txt	localhost	7070
+0Project FAQ	/faq.txt	localhost	7070
+1Guides	/guides	localhost	7070
+1Fun Stuff	/fun	localhost	7070
+.

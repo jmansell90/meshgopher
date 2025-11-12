@@ -1,0 +1,17 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+.eggs/
+*.egg-info/
+.env
+.venv
+venv/
+ENV/
+
+# Local tooling/scripts
+tools/

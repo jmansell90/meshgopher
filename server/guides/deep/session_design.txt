@@ -1,0 +1,6 @@
+Session Design Notes
+--------------------
+
+- Preserve per-sender state so navigation feels natural.
+- Cache menus temporarily to reduce latency on repeated opens.
+- Expose diagnostics via your local gopher content so users can self-serve.

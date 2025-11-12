@@ -1,0 +1,6 @@
+Welcome to the MeshGopher local demo site!
+
+Use this tree as a starting point for your own content.
+Each directory contains a gophermap file describing its menu items.
+
+Edit any of the text files in server/ and they will be served instantly.

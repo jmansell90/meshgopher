@@ -1,0 +1,3 @@
+Why did the packet cross the mesh?
+
+To get to the other node without losing ordering.

@@ -1,0 +1,6 @@
+Tips & Tricks
+-------------
+
+- Keep lines under ~70 characters for easier reading over DM.
+- Use informative display names in your gophermap lines.
+- Remember to terminate gophermap files with a single dot line.

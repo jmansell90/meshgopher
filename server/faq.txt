@@ -1,0 +1,10 @@
+MeshGopher Local FAQ
+
+Q: Where do I edit content?
+A: Drop .txt files and gophermap files under the server/ directory.
+
+Q: Can I add more menus?
+A: Create a subdirectory with its own gophermap and reference it from the parent menu.
+
+Q: How do I reference binary files?
+A: Update your gophermap to point at the file path using the appropriate type code.

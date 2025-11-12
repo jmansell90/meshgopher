@@ -28,6 +28,9 @@ meshgopher/
   main.py         # DM command router + session management
   meshie.py       # Meshtastic TCP wrapper (DM detection, paced sending)
   gopherlib.py    # Minimal Gopher client (menu/file/search)
+  meshie/         # Meshie package (client, chunker, filters)
+  localgopher/    # Lightweight file-backed Gopher server
+  server/         # Demo Gopher content (editable)
   requirements.txt
   Containerfile   # (Podman/Docker)
   README.md
@@ -49,10 +52,15 @@ Python dependencies (installed via `requirements.txt`):
 
 ## Environment Variables
 
-| Var        | Required | Default | Description                                  |
-|------------|----------|---------|----------------------------------------------|
-| `MESH_HOST`| **Yes**  | —       | Meshtastic node IP/hostname (TCP API).       |
-| `MESH_PORT`| No       | `4403`  | Meshtastic TCP port.                         |
+| Var                      | Required | Default    | Description                                                                 |
+|--------------------------|----------|------------|-----------------------------------------------------------------------------|
+| `MESH_HOST`              | **Yes**  | —          | Meshtastic node IP/hostname (TCP API).                                      |
+| `MESH_PORT`              | No       | `4403`     | Meshtastic TCP port.                                                        |
+| `LOCAL_GOPHER_ROOT`      | No       | `server`   | Filesystem path containing the demo/local Gopher content.                   |
+| `LOCAL_GOPHER_HOST`      | No       | `0.0.0.0`  | Bind address for the bundled Gopher server.                                 |
+| `LOCAL_GOPHER_PORT`      | No       | `7070`     | TCP port for the bundled Gopher server.                                     |
+| `LOCAL_GOPHER_CLIENT_HOST` | No     | —          | Hostname used when generating `u local` links (falls back to host/localhost). |
+| `LOCAL_GOPHER_URL`       | No       | —          | Explicit base Gopher URL to use for `u local` (overrides host/port logic).  |
 
 > If `MESH_HOST` is not set, the app exits with an error.
 
@@ -123,7 +131,7 @@ If you can’t use `--network host`, ensure the container can route to `MESH_HOS
 ## DM Command Reference
 
 ```
-u <URL>   Open a gopher URL (e.g., u gopher://gopher.floodgap.com/1/world)
+u <URL>   Open a gopher URL (e.g., u gopher://gopher.floodgap.com/1/world, or u local)
 n         Next page (menu items or file lines)
 p         Previous page
 b         Up one directory (or back to previous view)
@@ -161,3 +169,28 @@ mesh.inter_chunk_delay_sec = 1.0
 
 - Built on the Meshtastic Python library.
 - Gopher protocol implemented minimally for menus/files/search.
+- `server/` ships with a minimal Gopher site served by the bundled local server.
+
+---
+
+## Local Demo Gopher Server
+
+MeshGopher now ships with a tiny Gopher server that serves files from `server/`
+by default. Each directory contains a `gophermap` describing its menu entries,
+and `.txt` files provide the content referenced by type-0 menu items.
+
+Environment variables:
+
+| Variable            | Default  | Description                                |
+|---------------------|----------|--------------------------------------------|
+| `LOCAL_GOPHER_ROOT` | `server` | Root directory containing gophermap files. |
+| `LOCAL_GOPHER_PORT` | `7070`   | TCP port for the local server.             |
+| `LOCAL_GOPHER_HOST` | `0.0.0.0`| Bind address for the server.               |
+| `LOCAL_GOPHER_CLIENT_HOST` | — | Hostname to use when generating `u local` URLs (falls back to host/`localhost`). |
+| `LOCAL_GOPHER_URL`  | —        | Explicit gopher URL base (e.g., `gopher://meshbox:7070/1`). |
+
+If the root path exists, the server starts automatically when you run the bot.
+Customize the content by editing the files in `server/` or point
+`LOCAL_GOPHER_ROOT` at another directory tree. While chatting with the bot you
+can type `u local` (or `u local/some/path`) and it will expand to the local
+server URL derived from the variables above.

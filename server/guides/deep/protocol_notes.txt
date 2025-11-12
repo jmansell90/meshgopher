@@ -1,0 +1,6 @@
+Protocol Observations
+---------------------
+
+- Gopher+ attribute blocks add a lot of context; surface them when possible.
+- Veronica/WAIS searches expect tab-delimited field values.
+- Keep responses compact; MeshGopher chunks at 200 bytes per DM.

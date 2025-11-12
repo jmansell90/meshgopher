@@ -1,19 +1,19 @@
-#!/usr/bin/env python3
 """
-meshie.py — Meshtastic TCP helper with:
-  • Robust connection handling (waitForConfig, connection events)
-  • Direct-message (DM) detection & callbacks
-  • Broadcast + DM send helpers
-  • Ordered/paced multi-chunk DM sending (no deadlock on waitForAckNak)
+Meshie client implementation (connection handling, DM helpers, chunked sends).
 """
 
-import time
+from __future__ import annotations
+
 import threading
+import time
 from typing import Callable, List, Optional
 
 import meshtastic
 import meshtastic.tcp_interface
 from pubsub import pub
+
+from .chunker import chunk_message_smart
+from .filters import is_direct_to, is_text_packet
 
 
 class Meshie:
@@ -140,10 +140,10 @@ class Meshie:
           destination_id: Node ID like '!abcd1234'
           message:        Full message to chunk and send
           channel:        Channel index to use (DM still uses this index)
-          chunk_size:     Max characters per chunk (<= ~190 is safe)
+          chunk_size:     Max bytes per chunk (UTF-8, capped at 200)
           retries:        Per-chunk retry attempts on sendText exceptions
         """
-        chunks = [message[i:i + chunk_size] for i in range(0, len(message), chunk_size)] or [""]
+        chunks = chunk_message_smart(message, chunk_size)
 
         total = len(chunks)
         for idx, chunk in enumerate(chunks, 1):
@@ -152,8 +152,10 @@ class Meshie:
                 attempt += 1
                 try:
                     if self.verbose:
-                        print(f"[Meshie] DM (paced) -> {destination_id} ch={channel} "
-                              f"chunk {idx}/{total} attempt {attempt}")
+                        print(
+                            f"[Meshie] DM (paced) -> {destination_id} ch={channel} "
+                            f"chunk {idx}/{total} attempt {attempt}"
+                        )
                     self.interface.sendText(
                         chunk,
                         destinationId=destination_id,
@@ -180,38 +182,9 @@ class Meshie:
     def _on_connection_lost(self, interface, topic=pub.AUTO_TOPIC):
         print("[Meshie] connection.lost")
 
-    def _is_text(self, packet: dict) -> bool:
-        """
-        Heuristic: treat packets with decoded.text or portnum TEXT_MESSAGE_APP as text.
-        portnum may be a string ('TEXT_MESSAGE_APP') or an int; handle both.
-        """
-        try:
-            decoded = packet.get("decoded") or {}
-            if isinstance(decoded.get("text"), str):
-                return True
-            port = decoded.get("portnum")
-            if port == "TEXT_MESSAGE_APP":
-                return True
-            try:
-                # If it's an int, compare to enum
-                return int(port) == getattr(meshtastic.portnums_pb2.PortNum, "TEXT_MESSAGE_APP", -999)
-            except Exception:
-                return False
-        except Exception:
-            return False
-
-    def _is_direct_to_me(self, packet: dict) -> bool:
-        """
-        True if addressed specifically to our node (toId == my_id).
-        """
-        if not self.my_id:
-            return False
-        return packet.get("toId") == self.my_id
-
-    # TEXT path: dispatch DMs here (once). Always deliver to generic callbacks too.
     def _on_receive_text(self, packet, interface, topic=pub.AUTO_TOPIC):
         try:
-            is_dm = self._is_text(packet) and self._is_direct_to_me(packet)
+            is_dm = is_text_packet(packet) and is_direct_to(packet, self.my_id)
             if is_dm:
                 for cb in list(self.dm_callbacks):
                     try:
@@ -226,7 +199,6 @@ class Meshie:
         except Exception as e:
             print(f"[Meshie] _on_receive_text error: {e}")
 
-    # ANY path: deliver only to generic callbacks (no DM dispatch here to avoid duplicates)
     def _on_receive_any(self, packet, interface, topic=pub.AUTO_TOPIC):
         try:
             for cb in list(self.callbacks):
@@ -240,3 +212,6 @@ class Meshie:
     def _run_listener(self):
         while True:
             time.sleep(1)
+
+
+__all__ = ["Meshie"]
